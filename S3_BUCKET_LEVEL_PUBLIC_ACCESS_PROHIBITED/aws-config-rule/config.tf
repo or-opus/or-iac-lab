@@ -36,7 +36,7 @@ resource "aws_s3_bucket" "channel" {
 
 resource "aws_s3_bucket_acl" "bucket_config_acl" {
   bucket = aws_s3_bucket.channel.id
-  acl    = "private"
+  acl    = "private" # oak9: acl should be set to any of publicread, publicreadwrite, authenticateread
 }
 
 resource "aws_s3_bucket_public_access_block" "example" {
