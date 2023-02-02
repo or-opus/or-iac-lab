@@ -1,67 +1,67 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.13.1.58284",
-      "templateHash": "13120038605368246703"
+      "version": "0.5.6.12127",
+      "templateHash": "2227781763411200690"
     }
   },
   "parameters": {
-    "storageAccountType": {
-      "type": "string",
-      "defaultValue": "Standard_LRS",
-      "allowedValues": [
-        "Premium_LRS",
-        "Premium_ZRS",
-        "Standard_GRS",
-        "Standard_GZRS",
-        "Standard_LRS",
-        "Standard_RAGRS",
-        "Standard_RAGZRS",
-        "Standard_ZRS"
+    "actions": {
+      "type": "array",
+      "defaultValue": [
+        "Microsoft.Resources/subscriptions/resourceGroups/read"
       ],
       "metadata": {
-        "description": "Storage Account type"
+        "description": "Array of actions for the roleDefinition"
       }
     },
-    "location": {
-      "type": "string",
-      "defaultValue": "[resourceGroup().location]",
+    "notActions": {
+      "type": "array",
+      "defaultValue": [],
       "metadata": {
-        "description": "The storage account location."
+        "description": "Array of notActions for the roleDefinition"
       }
     },
-    "storageAccountName": {
+    "roleName": {
       "type": "string",
-      "defaultValue": "[format('store{0}', uniqueString(resourceGroup().id))]",
+      "defaultValue": "Custom Role - RG Reader",
       "metadata": {
-        "description": "The name of the storage account"
+        "description": "Friendly name of the role definition"
+      }
+    },
+    "roleDescription": {
+      "type": "string",
+      "defaultValue": "Subscription Level Deployment of a Role Definition",
+      "metadata": {
+        "description": "Detailed description of the role definition"
       }
     }
   },
+  "variables": {
+    "roleDefName": "[guid(subscription().id, string(parameters('actions')), string(parameters('notActions')))]"
+  },
   "resources": [
     {
-      "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2022-09-01",
-      "name": "[parameters('storageAccountName')]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "[parameters('storageAccountType')]"
-      },
-      "kind": "StorageV2",
-      "properties": {}
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "apiVersion": "2018-07-01",
+      "name": "[variables('roleDefName')]",
+      "properties": {
+        "roleName": "[parameters('roleName')]",
+        "description": "[parameters('roleDescription')]",
+        "type": "customRole",
+        "permissions": [
+          {
+            "actions": "[parameters('actions')]",
+            "notActions": "[parameters('notActions')]"
+          }
+        ],
+        "assignableScopes": [
+          "[subscription().id]"
+        ]
+      }
     }
-  ],
-  "outputs": {
-    "storageAccountName": {
-      "type": "string",
-      "value": "[parameters('storageAccountName')]"
-    },
-    "storageAccountId": {
-      "type": "string",
-      "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
-    }
-  }
+  ]
 }
