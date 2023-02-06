@@ -1,67 +1,61 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "metadata": {
-    "_generator": {
-      "name": "bicep",
-      "version": "0.5.6.12127",
-      "templateHash": "2227781763411200690"
-    }
-  },
-  "parameters": {
-    "actions": {
-      "type": "array",
-      "defaultValue": [
-        "Microsoft.Resources/subscriptions/resourceGroups/read"
-      ],
-      "metadata": {
-        "description": "Array of actions for the roleDefinition"
-      }
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "opusSpId": {
+            "defaultValue": "017961fd-f05f-4564-b0e2-c83722743baa",
+            "type": "String"
+        }
     },
-    "notActions": {
-      "type": "array",
-      "defaultValue": [],
-      "metadata": {
-        "description": "Array of notActions for the roleDefinition"
-      }
-    },
-    "roleName": {
-      "type": "string",
-      "defaultValue": "Custom Role - RG Reader",
-      "metadata": {
-        "description": "Friendly name of the role definition"
-      }
-    },
-    "roleDescription": {
-      "type": "string",
-      "defaultValue": "Subscription Level Deployment of a Role Definition",
-      "metadata": {
-        "description": "Detailed description of the role definition"
-      }
-    }
-  },
-  "variables": {
-    "roleDefName": "[guid(subscription().id, string(parameters('actions')), string(parameters('notActions')))]"
-  },
-  "resources": [
-    {
-      "type": "Microsoft.Authorization/roleDefinitions",
-      "apiVersion": "2018-07-01",
-      "name": "[variables('roleDefName')]",
-      "properties": {
-        "roleName": "[parameters('roleName')]",
-        "description": "[parameters('roleDescription')]",
-        "type": "customRole",
-        "permissions": [
-          {
-            "actions": "[parameters('actions')]",
-            "notActions": "[parameters('notActions')]"
-          }
-        ],
-        "assignableScopes": [
-          "[subscription().id]"
+    "variables": {
+        "roleName": "opus-role-read",
+        "roleDefName": "[guid(subscription().id, variables('roleName'))]",
+        "roleAssignmentId": "[guid(subscription().id, parameters('opusSpId'), 'roleAssignment')]",
+        "Actions": [
+            "*/read"
         ]
-      }
+    },
+    "functions": [],
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/roleDefinitions",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[variables('roleDefName')]",
+            "properties": {
+                "roleName": "[variables('roleName')]",
+                "description": "Permissions to allow Orca SideScanner to protect your system",
+                "type": "customRole",
+                "isCustom": true,
+                "permissions": [
+                    {
+                        "actions": "[variables('actions')]",
+                        "notActions": []
+                    }
+                ],
+                "assignableScopes": [
+                    "[subscription().id]"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2020-04-01-preview",
+            "name": "[variables('roleAssignmentId')]",
+            "dependsOn": [
+                "[variables('roleDefName')]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefName'))]",
+                "principalId": "[parameters('opusSpId')]",
+                "scope": "[subscription().id]",
+                "principalType": "ServicePrincipal"
+            }
+        }
+    ],
+    "outputs": {
+        "SubscriptioID": {
+            "type": "String",
+            "value": "[subscription().id]"
+        }
     }
-  ]
 }
