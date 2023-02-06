@@ -2,15 +2,14 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "opusSpId": {
-            "defaultValue": "017961fd-f05f-4564-b0e2-c83722743baa",
+        "opusAppObjectID": {
             "type": "String"
         }
     },
     "variables": {
         "roleName": "opus-role-read",
         "roleDefName": "[guid(subscription().id, variables('roleName'))]",
-        "roleAssignmentId": "[guid(subscription().id, parameters('opusSpId'), 'roleAssignment')]",
+        "roleAssignmentId": "[guid(subscription().id, parameters('opusAppObjectID'), 'roleAssignment')]",
         "Actions": [
             "*/read"
         ]
@@ -46,7 +45,7 @@
             ],
             "properties": {
                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefName'))]",
-                "principalId": "[parameters('opusSpId')]",
+                "principalId": "[parameters('opusAppObjectID')]",
                 "scope": "[subscription().id]",
                 "principalType": "ServicePrincipal"
             }
